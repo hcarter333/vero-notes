@@ -41,7 +41,7 @@ first and falls back to 1.x `FastMCP`.) Claude Code must be on PATH.
 
 ## Run
 
-Instrument a page (adds a Discuss chat to every finding, with section ids
+Instrument a page (adds a "Discuss" chat button to every section, with section ids
 taken from the `<!-- COMMENT -->` labelling each one), then serve it:
 
     python3 instrument_page.py /path/to/page.html
@@ -59,17 +59,24 @@ To preview or restyle the page with no agent attached:
 
 ## Flow
 
-1. Click Discuss on a section (label becomes Chat), type, click Send.
+1. Click "Discuss" on a section (label becomes Chat), type, click Send.
    The first Send after any page load transmits the whole text area, in
    case a fresh agent session is attached; later Sends transmit only the
-   new text.
-2. The agent's replies stream back into the text area (page polls
+   new text.  
+
+<img width="736" height="313" alt="image" src="https://github.com/user-attachments/assets/d48c8216-2f05-47c9-bca7-bd60457b64c7" />  
+
+   
+3. The agent's replies stream back into the text area (page polls
    /replies every 2 s; no reload).
-3. Say "update my doc" in the chat. The agent calls `update_section`,
+4. Say "update my doc" in the chat. The agent calls `update_section`,
    which splices new HTML between that section's markers and embeds every
    section's chat transcript into its hidden text area. The page polls
    /version (file mtime) every 3 s and reloads when it changes; open chat
    boxes and unsent typing are restored via sessionStorage.
+
+<img width="741" height="810" alt="image" src="https://github.com/user-attachments/assets/d4340ca9-5862-47ec-a2f5-b1ead93a1269" />
+
 
 ## MCP tools exposed to the agent
 
