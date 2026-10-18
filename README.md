@@ -90,6 +90,7 @@ To preview or restyle the page with no agent attached:
 
 ## Known limits
 
+- If the agent doesn't repond in the paage, go to the agent running in the console where you started it and ask it to start the messaging loop.
 - If the agent eventually stops polling (long idle, turn limits), type
   "keep waiting for messages" into the Claude Code CLI to resume; the
   first Send from the page re-transmits full history, so nothing is lost.
