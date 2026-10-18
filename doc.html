@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>vero-notes demo</title>
+<style>
+  body { font-family: Georgia, 'Times New Roman', serif; max-width: 46rem; margin: 2rem auto;
+         padding: 0 1rem; line-height: 1.55; color: #222; }
+  h1 { font-size: 1.7rem; }
+  h2 { font-size: 1.2rem; margin-bottom: .4rem; }
+  section.doc-section { margin: 2.2rem 0; padding-bottom: 1.2rem; border-bottom: 1px solid #ddd; }
+  .discuss-btn, .send-btn { font: inherit; font-size: .85rem; padding: .25rem .9rem; cursor: pointer; }
+  .chatbox { margin-top: .6rem; }
+  .chatbox textarea { width: 100%; min-height: 9rem; font: .82rem/1.45 monospace;
+                      padding: .5rem; box-sizing: border-box; }
+  .send-btn { margin-top: .3rem; }
+  .status { font-size: .75rem; color: #777; margin-left: .6rem; }
+</style>
+</head>
+<body>
+<h1>vero-notes demo</h1>
+<p>Each section below has a <em>Discuss</em> button. Chat about a section, and when you're
+ready, tell the agent to <strong>update my doc</strong>. The section is rewritten in place and
+the page reloads itself.</p>
+
+<section class="doc-section" id="s1">
+<!-- content:s1:start -->
+<h2>1. Overview</h2>
+<p>This page is a living document served from your local disk. A Claude Code agent sits on the
+other side of the web server and can discuss any section with you, then rewrite that section in
+place when asked. The file itself is plain HTML in a revision-controlled directory, so every
+update the agent makes is an ordinary diff.</p>
+<!-- content:s1:end -->
+<div class="discuss">
+  <button class="discuss-btn" data-section="s1">Discuss</button><span class="status" id="status-s1"></span>
+  <div class="chatbox" hidden id="box-s1">
+    <textarea class="chatlog" id="log-s1" data-section="s1" placeholder="Comments, questions, or change requests for this section..."></textarea>
+    <button class="send-btn" data-section="s1">Send</button>
+  </div>
+</div>
+</section>
+
+<section class="doc-section" id="s2">
+<!-- content:s2:start -->
+<h2>2. How the chat works</h2>
+<p>Clicking <em>Discuss</em> reveals a text area scoped to this section only. Whatever you type
+is sent to the agent along with the section id. The first time you press Send, the entire text
+area is transmitted, so a freshly attached agent gets the full history. Replies from the agent
+are appended into the same text area without a page reload.</p>
+<!-- content:s2:end -->
+<div class="discuss">
+  <button class="discuss-btn" data-section="s2">Discuss</button><span class="status" id="status-s2"></span>
+  <div class="chatbox" hidden id="box-s2">
+    <textarea class="chatlog" id="log-s2" data-section="s2" placeholder="Comments, questions, or change requests for this section..."></textarea>
+    <button class="send-btn" data-section="s2">Send</button>
+  </div>
+</div>
+</section>
+
+<section class="doc-section" id="s3">
+<!-- content:s3:start -->
+<h2>3. How updates work</h2>
+<p>When you tell the agent to update the document, it rewrites only the content of the section
+under discussion, splicing new HTML between hidden marker comments. Your chat history for every
+section is embedded into the regenerated file's hidden text areas, so after the automatic
+reload, clicking the chat button shows the conversation right where you left it.</p>
+<!-- content:s3:end -->
+<div class="discuss">
+  <button class="discuss-btn" data-section="s3">Discuss</button><span class="status" id="status-s3"></span>
+  <div class="chatbox" hidden id="box-s3">
+    <textarea class="chatlog" id="log-s3" data-section="s3" placeholder="Comments, questions, or change requests for this section..."></textarea>
+    <button class="send-btn" data-section="s3">Send</button>
+  </div>
+</div>
+</section>
+
+<section class="doc-section" id="s4">
+<!-- content:s4:start -->
+<h2>4. Architecture</h2>
+<p>A single Python process does double duty: it speaks MCP over stdio to the Claude Code agent
+that spawned it, and it runs a small HTTP server on localhost that serves this page and relays
+chat both ways. The page's static JavaScript polls for agent replies and for a new file
+version; when the version changes, it reloads.</p>
+<!-- content:s4:end -->
+<div class="discuss">
+  <button class="discuss-btn" data-section="s4">Discuss</button><span class="status" id="status-s4"></span>
+  <div class="chatbox" hidden id="box-s4">
+    <textarea class="chatlog" id="log-s4" data-section="s4" placeholder="Comments, questions, or change requests for this section..."></textarea>
+    <button class="send-btn" data-section="s4">Send</button>
+  </div>
+</div>
+</section>
+
+<section class="doc-section" id="s5">
+<!-- content:s5:start -->
+<h2>5. Try it</h2>
+<p>Open the chat on this section and ask the agent to rewrite it — a haiku about margins,
+a denser technical summary, whatever you like. Say <strong>update my doc</strong> and watch
+the page regenerate itself. Every change lands in this file on disk, so <code>git diff</code>
+shows exactly what the agent did.</p>
+<!-- content:s5:end -->
+<div class="discuss">
+  <button class="discuss-btn" data-section="s5">Discuss</button><span class="status" id="status-s5"></span>
+  <div class="chatbox" hidden id="box-s5">
+    <textarea class="chatlog" id="log-s5" data-section="s5" placeholder="Comments, questions, or change requests for this section..."></textarea>
+    <button class="send-btn" data-section="s5">Send</button>
+  </div>
+</div>
+</section>
+
+<script>
+(function () {
+  const SECS = Array.from(document.querySelectorAll(".doc-section")).map(s => s.id);
+  const state = {};   // sec -> { sent: bool, lastLen: int }
+  let version = null;
+  const open = new Set(JSON.parse(sessionStorage.getItem("openSections") || "[]"));
+
+  function saveOpen() { sessionStorage.setItem("openSections", JSON.stringify([...open])); }
+
+  function showBox(sec) {
+    document.getElementById("box-" + sec).hidden = false;
+    document.querySelector('.discuss-btn[data-section="' + sec + '"]').textContent = "Chat";
+    open.add(sec); saveOpen();
+  }
+  function hideBox(sec) {
+    document.getElementById("box-" + sec).hidden = true;
+    document.querySelector('.discuss-btn[data-section="' + sec + '"]').textContent = "Discuss";
+    open.delete(sec); saveOpen();
+  }
+
+  // Init: restore any typing stashed just before an update-triggered reload,
+  // reopen previously open chat boxes.
+  SECS.forEach(sec => {
+    const log = document.getElementById("log-" + sec);
+    const pending = sessionStorage.getItem("pending-" + sec);
+    if (pending !== null) {
+      if (pending.length > log.value.length) log.value = pending;
+      sessionStorage.removeItem("pending-" + sec);
+    }
+    // sent stays false so the first Send after any load transmits the full
+    // text area (a new agent session may be attached).
+    state[sec] = { sent: false, lastLen: log.value.length };
+    if (open.has(sec)) showBox(sec);
+  });
+
+  document.querySelectorAll(".discuss-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const sec = btn.dataset.section;
+      document.getElementById("box-" + sec).hidden ? showBox(sec) : hideBox(sec);
+    });
+  });
+
+  function setStatus(sec, msg) {
+    const el = document.getElementById("status-" + sec);
+    el.textContent = msg;
+    setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, 3000);
+  }
+
+  function post(url, obj) {
+    return fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(obj) });
+  }
+
+  document.querySelectorAll(".send-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const sec = btn.dataset.section;
+      const log = document.getElementById("log-" + sec);
+      const st = state[sec];
+      const text = st.sent ? log.value.slice(st.lastLen) : log.value;
+      if (!text.trim()) return;
+      try {
+        await post("/chat", { section: sec, text: text, snapshot: log.value });
+        st.sent = true;
+        st.lastLen = log.value.length;
+        setStatus(sec, "sent");
+      } catch (e) { setStatus(sec, "send failed - is the server up?"); }
+    });
+  });
+
+  async function pollReplies() {
+    try {
+      const data = await (await fetch("/replies")).json();
+      for (const sec of Object.keys(data)) {
+        const log = document.getElementById("log-" + sec);
+        if (!log) continue;
+        const st = state[sec];
+        // Insert replies after the last-sent point, preserving any unsent typing.
+        const unsent = log.value.slice(st.lastLen);
+        let head = log.value.slice(0, st.lastLen);
+        data[sec].forEach(msg => { head += "\n\nCLAUDE: " + msg + "\n"; });
+        log.value = head + unsent;
+        st.lastLen = head.length;
+        post("/snapshot", { section: sec, snapshot: log.value });
+        showBox(sec);
+        setStatus(sec, "reply received");
+      }
+    } catch (e) { /* server briefly unavailable; try again next tick */ }
+  }
+
+  async function pollVersion() {
+    try {
+      const data = await (await fetch("/version")).json();
+      if (version === null) { version = data.v; return; }
+      if (data.v !== version) {
+        // Stash current text areas so nothing typed since the last snapshot is lost.
+        SECS.forEach(sec => {
+          const log = document.getElementById("log-" + sec);
+          if (log.value) sessionStorage.setItem("pending-" + sec, log.value);
+        });
+        location.reload();
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  pollVersion();
+  setInterval(pollReplies, 2000);
+  setInterval(pollVersion, 3000);
+})();
+</script>
+</body>
+</html>

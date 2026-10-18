@@ -26,8 +26,9 @@ file. Single server, single CLI agent, everything on local disk.
 - `instrument_page.py` - add a Discuss chat to every `<div class="finding">`
   block of a findings-style page (markers, widgets, CSS, chat script), so it
   can be served via `DOC_PATH=/abs/path/page.html ./start.sh`.
+- `doc.html` - a tiny self-describing demo document, served by default.
 
-No sample document ships in this repo. The served document is any HTML page
+The served document is any HTML page
 whose section content sits between `<!-- content:sN:start/end -->` markers,
 with chat history in each section's hidden `<textarea class="chatlog">`;
 `instrument_page.py` adds all of that to an existing page.
@@ -41,7 +42,11 @@ first and falls back to 1.x `FastMCP`.) Claude Code must be on PATH.
 
 ## Run
 
-Instrument a page (adds a "Discuss" chat button to every section, with section ids
+To try the shipped demo document (`doc.html`), just launch:
+
+    ./start.sh
+
+Or instrument a page (adds a "Discuss" chat button to every section, with section ids
 taken from the `<!-- COMMENT -->` labelling each one), then serve it:
 
     python3 instrument_page.py /path/to/page.html
