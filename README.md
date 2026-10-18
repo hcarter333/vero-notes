@@ -15,6 +15,26 @@ agent; say "update my doc" and the agent rewrites that section in place, the
 page reloads itself, and your chat history survives inside the regenerated
 file. Single server, single CLI agent, everything on local disk.
 
+## Why
+
+We should all be documenting whatever we do in our field — and increasingly,
+we use LLMs while we do it. vero-notes places the LLM inside the document
+itself, so the conversation happens in the context of the work, lab-book
+style, instead of in a chat window somewhere else. Nothing about it is
+specific to the humanities: the served page can be machine-generated research
+findings arriving faster than you can read them, or scans of an existing
+handwritten lab book that you and the agent discuss and extend as you figure
+things out together. Everything lands in one plain HTML file under revision
+control, so no step of the work is ever lost.
+
+A deliberate design choice: the agent attaches through MCP and the Claude
+Code CLI rather than the API. Chatting with your document costs nothing
+beyond the Claude subscription you already have — no per-call billing. An
+API-backed variant (this system grew out of an earlier, API-based ham radio
+exam tutor) is frankly the cleaner design; this one spends "free" resources
+first.
+<!-- TODO: add a link to the live ham radio exam tutor page, or a screenshot of it -->
+
 ## Files
 
 - `doc_server.py` - one process: MCP server over stdio (spawned by Claude
