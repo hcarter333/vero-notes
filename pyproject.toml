@@ -1,0 +1,10 @@
+[project]
+name = "vero-notes"
+version = "0.1.0"
+description = "Margin notes that talk back: per-section chat with a Claude Code agent inside a local HTML document, over MCP."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["mcp"]
+
+[dependency-groups]
+dev = ["pytest"]

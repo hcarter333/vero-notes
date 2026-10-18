@@ -1,0 +1,6 @@
+__pycache__/
+*.bak
+*:Zone.Identifier
+.claude/hooks/.stop-stamps
+# served documents are local data, not part of the system
+*.html

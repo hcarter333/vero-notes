@@ -1,0 +1,26 @@
+name: pytest
+
+on:
+  push:
+    paths:
+      - "**.py"
+  pull_request:
+    paths:
+      - "**.py"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install mcp pytest
+      - name: Run pytest
+        run: |
+          code=0
+          pytest tests || code=$?
+          # exit code 5 = no tests collected; fine while tests/ is empty
+          if [ "$code" -eq 5 ]; then echo "No tests collected yet"; exit 0; fi
+          exit "$code"

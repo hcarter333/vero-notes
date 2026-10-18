@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "docserver": {
+      "command": "python3",
+      "args": ["doc_server.py"]
+    }
+  }
+}
